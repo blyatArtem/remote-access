@@ -1,69 +1,101 @@
-pub mod command_converter
+pub mod command_serializer
 {
-    use std::vec;
+    use super::{Command, CommandMKDIR};
 
-    pub fn receive_data(code: u32, buffer: &mut [u8; crate::BUFFER_SIZE] )
+    pub struct CommandReader
     {
-        let result1 = read_integer(buffer, 0);
-        println!("1 message (integer 32): {}", result1.1);
-
-        let result2 = read_integer(buffer, result1.0);
-        println!("2 message (text lenght): {}", result2.1);
-
-        let result3 = read_string(buffer, result1.0);
-        println!("2 message (text): {}", result3.1);
-
-        let result4 = read_integer(buffer, result3.0);
-        println!("3 message (integer 32): {}", result4.1);
-
+        buffer: Vec<u8>,
+        position: usize
     }
 
-    fn read_integer(buffer: &mut [u8; crate::BUFFER_SIZE], index: u32) -> (u32, i32)
+    pub struct CommandWriter
     {
-        let mut value_buffer: [u8; 4] = [0; 4];
-        value_buffer.copy_from_slice(&buffer[index as usize..(index + 4) as usize]);
-        let value = i32::from_ne_bytes(value_buffer);
-        return (index + 4, value);
+        buffer: Vec<u8>,
+        position: usize
     }
 
-    fn read_string(buffer: &mut [u8; crate::BUFFER_SIZE], mut index: u32) -> (u32, String)
-    {
-        let result: (u32, i32) = read_integer(buffer, index);
-        index = result.0;
-        let start_index = index;
-        let text_lenght = result.1 as u32;
-
-        let mut value_buffer: Vec<u8> = Vec::new();
-        while index < start_index + text_lenght
+    impl CommandReader {
+        pub fn read_i32(&mut self) -> i32
         {
-            value_buffer.push(buffer[index as usize]);
-            index += 1;
+            let mut result: [u8; 4] = [0; 4];
+            for i in 0..4 {
+                result[i] = self.buffer[self.position + i];
+            }
+            self.position += 4;
+            return i32::from_ne_bytes(result);
         }
-        let value = String::from_utf8(value_buffer).unwrap();
-        return  (index, value);
+
+        pub fn read_string(&mut self) -> String
+        {
+            let lenght: usize = self.read_i32() as usize;
+            let mut result: Vec<u8> = self.buffer[self.position..self.position + lenght].to_vec();
+            self.position += lenght;
+
+            return String::from_utf8(result).unwrap();
+        }
+    }
+
+    pub fn receive_data(code: u32, buffer: Vec<u8> )
+    {
+        let mut reader = CommandReader { buffer: buffer, position: 0 };
+        let struct_id = reader.read_i32();
+
+        let mut cmd_mkdir: CommandMKDIR = CommandMKDIR { path: "".to_string() };
+        
+        cmd_mkdir.try_invoke(struct_id, &mut reader);
     }
 }
 
-// pub trait Command {
-//     fn execute(&self);
-// }
+pub trait Command {
+    fn try_invoke(&mut self, id: i32, reader: &mut command_serializer::CommandReader)
+    {
+        if self.get_id() == id
+        {
+            self.deserialize(reader);
+            self.execute_command();
+        }
+    }
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader);
+    fn get_id(&self) -> i32;
+    fn execute_command(&self);
+}
 
-// impl Command for CreateDir // 1
-// {
-//     fn execute(&self)
-//     {
-//         println!("mkdir {}", self.path)
-//     }
-// }
+pub struct CommandMKDIR
+{
+    path: String
+}
 
-// impl Command for RemoveDir // 2
-// {
-//     fn execute(&self)
-//     {
-//         println!("rmdir {}", self.path)
-//     }
-// }
+pub struct CommandRMDIR
+{
+    path: String
+}
 
-// struct CreateDir { path: String }
+impl Command for CommandMKDIR
+{
+    fn get_id(&self) -> i32 {
+        return 1;
+    }
 
-// struct RemoveDir { path: String }
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
+        self.path = reader.read_string();
+    }
+
+    fn execute_command(&self) {
+        println!("mkdir: {}", self.path);
+    }
+}
+
+impl Command for CommandRMDIR
+{
+    fn get_id(&self) -> i32 {
+        return 2;
+    }
+
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
+        self.path = reader.read_string();
+    }
+
+    fn execute_command(&self) {
+        println!("rmdir: {}", self.path);
+    }
+}
