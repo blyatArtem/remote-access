@@ -11,11 +11,7 @@ namespace server.Serialize.NetCommands
         public CommandMKDIR(string path = "")
         {
             this.path = path;
-        }
-
-        public void Execute()
-        {
-            Console.WriteLine("MKDIR.Execute");
+            _id = 1;
         }
 
         public void Serialize(CommandWriter writer)
@@ -25,9 +21,11 @@ namespace server.Serialize.NetCommands
 
         public void Deserialize(CommandReader reader) => throw new NotImplementedException("CommandMKDIR.Deserialize");
 
-        public int ID => 1;
+        public int ID => _id;
 
         public string path;
+
+        protected int _id;
 
     }
 }

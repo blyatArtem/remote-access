@@ -1,4 +1,6 @@
-use std::{io::Write, net::TcpStream};
+use std::{fmt::Error, intrinsics::r#try, io::Write, net::TcpStream};
+
+use crate::utils;
 
 pub mod command_serializer
 {
@@ -151,9 +153,14 @@ impl Command for CommandMKDIR
     }
 
     fn execute_command(&mut self, from: &mut TcpStream) {
-        println!("mkdir: {}", self.path);
-
-        let mut command_result = CommandResult { success: true, message: self.path.to_string() };
+        if let Err(e) = std::fs::create_dir(self.path.to_string())
+        {
+            let mut command_result = CommandResult { success: false, message: format!("failed to create \"{}\"", self.path.to_string()) };
+            command_result.send(from);
+            println!("{}", e);
+            return;
+        }
+        let mut command_result = CommandResult { success: true, message: format!("created \"{}\"", self.path.to_string()) };
         command_result.send(from);
     }
 
@@ -167,7 +174,14 @@ impl Command for CommandRMDIR
     }
 
     fn execute_command(&mut self, from: &mut TcpStream) {
-        println!("rmdir: {}", self.path);
+        if let Err(e) = std::fs::remove_dir_all(self.path.to_string())
+        {
+            let mut command_result = CommandResult { success: false, message: format!("{}", e) };
+            command_result.send(from);
+            return;
+        }
+        let mut command_result = CommandResult { success: true, message: format!("deleted \"{}\"", self.path.to_string()) };
+        command_result.send(from);
     }
 
     fn serialize(&mut self, _: &mut command_serializer::CommandWriter) { }
@@ -179,7 +193,7 @@ impl Command for CommandResult
 
     fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) {
         writer.write_i32(0); // current type
-        writer.write_bool(self.success); // idk
+        writer.write_bool(self.success);
         writer.write_string(self.message.to_string());
     }
 

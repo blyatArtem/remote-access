@@ -12,8 +12,6 @@ namespace server.Serialize.NetCommands
 
         public abstract void Deserialize(CommandReader reader);
 
-        public abstract void Execute();
-
         public int ID
         {
             get;

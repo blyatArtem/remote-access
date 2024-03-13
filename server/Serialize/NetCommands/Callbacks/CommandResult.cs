@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetCommands.Callbacks
 {
-    internal class CommandResult : INetCommand
+    internal class CommandResult : INetCommand, INetMessageResult
     {
         public CommandResult()
         {
@@ -21,12 +21,12 @@ namespace server.Serialize.NetCommands
             Message = reader.ReadString();
         }
 
-        public void Execute()
-        {
-
-        }
-
         public void Serialize(CommandWriter writer) => throw new NotImplementedException("CommandResult.Serialize");
+
+        public void Invoke()
+        {
+            throw new NotImplementedException();
+        }
 
         public bool Success { get; set; }
         public string Message { get; set; }

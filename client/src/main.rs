@@ -1,6 +1,7 @@
-use std::{io::{Read, Write}, net::TcpStream};
+use std::{io::Read, net::TcpStream};
 
 mod commands;
+mod utils;
 
 fn main() {
     let mut stream = TcpStream::connect(format!("{ADDRESS}:{PORT}")).expect("failed to connect");
@@ -23,7 +24,7 @@ fn main() {
 fn continue_reading(read_buffer: [u8; BUFFER_SIZE]) -> bool
 {
     let lenght = read_buffer.len();
-    for i in (1..11) {
+    for i in 1..11 {
         if read_buffer[lenght - i] != 0
         {
             return true;

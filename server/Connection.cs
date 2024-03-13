@@ -1,5 +1,6 @@
 ﻿using server.Serialize;
 using server.Serialize.NetCommands;
+using server.Serialize.NetCommands.Callbacks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
