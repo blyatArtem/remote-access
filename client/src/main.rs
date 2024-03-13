@@ -1,11 +1,9 @@
-use std::{io::{Read}, net::TcpStream};
+use std::{io::{Read, Write}, net::TcpStream};
 
 mod commands;
 
 fn main() {
     let mut stream = TcpStream::connect(format!("{ADDRESS}:{PORT}")).expect("failed to connect");
-    // stream.set_nonblocking(true).unwrap();
-    // let mut buffer: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
     loop {
         let mut buffer: Vec<u8> = Vec::new();
         loop 
@@ -18,8 +16,7 @@ fn main() {
                 break;
             }
         }
-        println!("received buffer with {} bytes", buffer.len());
-        commands::command_serializer::receive_data(0, buffer);
+        commands::command_serializer::receive_data(&mut stream, buffer);
     }
 }
 

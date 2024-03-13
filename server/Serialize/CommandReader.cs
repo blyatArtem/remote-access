@@ -12,5 +12,31 @@ namespace server.Serialize
         {
 
         }
+
+        public bool ReadBool()
+        {
+            byte flag = buffer[position];
+            position += 1;
+            return flag != 0 ? true : false;
+        }
+
+        public int ReadInt32()
+        {
+            byte[] bufferValue = new byte[4];
+            bufferValue[0] = buffer[position];
+            bufferValue[1] = buffer[position + 1];
+            bufferValue[2] = buffer[position + 2];
+            bufferValue[3] = buffer[position + 3];
+            int value = BitConverter.ToInt32(bufferValue);
+            position += 4;
+            return value;
+        }
+
+        public string ReadString()
+        {
+            int lenght = ReadInt32();
+            byte[] data = ReadBytes(lenght);
+            return Encoding.UTF8.GetString(data, 0, lenght);
+        }
     }
 }

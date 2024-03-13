@@ -17,7 +17,7 @@ namespace server
             this.Index = index;
         }
 
-        public void Send(INetCommand command)
+        public INetCommand? Send(INetCommand command)
         {
             CommandWriter writer = new CommandWriter();
             writer.WriteInt32(command.ID);
@@ -30,6 +30,52 @@ namespace server
             var stream = Client.GetStream();
             stream.Write(buffer);
             stream.Flush();
+
+            return Receive();
+        }
+
+        public INetCommand? Receive()
+        {
+            List<byte> buffer = new List<byte>();
+            for(; ; )
+            {
+                byte[] readBuffer = new byte[Server.BUFFER_SIZE];
+                Client.GetStream().Read(readBuffer, 0, readBuffer.Length);
+                buffer = buffer.Concat(readBuffer.ToList()).ToList();
+                
+                if (!ContinueRead(readBuffer))
+                {
+                    break;
+                }
+            }
+
+            Console.WriteLine(string.Join(" ", buffer));
+
+            CommandReader reader = new CommandReader();
+            reader.buffer = buffer.ToArray();
+            int commandId = reader.ReadInt32();
+            return GetCommandFromId(commandId, reader);
+        }
+
+        private INetCommand? GetCommandFromId(int id, CommandReader reader)
+        {
+            if (id == 0)
+            {
+                CommandResult result = new CommandResult();
+                result.Deserialize(reader);
+                return result;
+            }
+            return null;
+        }
+
+        private bool ContinueRead(byte[] readBuffer)
+        {
+            for (int i = 1; i < 11; i++)
+            {
+                if (readBuffer[^i] != 0)
+                    return true;
+            }
+            return false;
         }
 
         public TcpClient Client

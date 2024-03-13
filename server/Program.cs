@@ -16,7 +16,13 @@ namespace server
             for (; ; )
             {
                 Console.ReadKey();
-                Server.Current.Connections[0].Send(new CommandMKDIR("hello world!"));
+                INetCommand? result = Server.Current.Connections[0].Send(new CommandMKDIR("hello world!"));
+                if (result == null)
+                {
+                    continue;
+                }
+                CommandResult callback = result! as CommandResult;
+                Console.WriteLine($"returned: sucress: {callback.Success}, message: {callback.Message}");
             }
         }
 

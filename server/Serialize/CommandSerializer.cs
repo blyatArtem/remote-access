@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,17 @@ namespace server.Serialize
                 buffer[position + i] = bytes[i];
             }
             position += bytes.Length;
+        }
+
+        protected byte[] ReadBytes(int lenght)
+        {
+            byte[] data = new byte[lenght];
+            for (int i = 0; i < lenght; i++)
+            {
+                data[i] = buffer[position + i];
+            }
+            position += lenght;
+            return data;
         }
 
         protected void Resize(int needBytes)

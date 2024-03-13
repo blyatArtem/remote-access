@@ -23,10 +23,7 @@ namespace server.Serialize.NetCommands
             writer.WriteString(path);
         }
 
-        public void Deserialize(CommandReader reader)
-        {
-
-        }
+        public void Deserialize(CommandReader reader) => throw new NotImplementedException("CommandMKDIR.Deserialize");
 
         public int ID => 1;
 
