@@ -31,13 +31,14 @@ namespace server
 
         internal static void Initialize(uint port, IPAddress address) => Current = new Server(port, address);
 
-        internal void RunThread(bool sync = true)
+        internal void RunThread(bool sync = false)
         {
             _thr = new Thread(() =>
             {
                 while (true)
                 {
                     var connection = new Connection(_listner.AcceptTcpClient(), _connectionСounter);
+                    Console.WriteLine("client connected");
                     _connectionСounter++;
                     lock (_block)
                         Connections.Add(connection);

@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace server.Serialize.NetCommands
 {
-    internal interface INetCommand
+    internal interface INetResult : INetCommand
     {
-        public int ID
-        {
-            get;
-        }
+        public void Invoke();
     }
 }

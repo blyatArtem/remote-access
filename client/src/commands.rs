@@ -1,10 +1,10 @@
-use std::{fmt::Error, intrinsics::r#try, io::Write, net::TcpStream};
+use std::{io::Write, net::TcpStream};
 
-use crate::utils;
+use crate::utils::{self, dir::DirInfo};
 
 pub mod command_serializer
 {
-    use super::{Command, CommandMKDIR, CommandRMDIR};
+    use super::{Command, CommandGetFiles, CommandMKDIR, CommandRMDIR};
     use std::net::TcpStream;
 
     pub struct CommandReader
@@ -53,12 +53,18 @@ pub mod command_serializer
         pub fn resize(&mut self, )
         {
             let mut i: usize = 0;
-            while self.buffer.len() > crate::BUFFER_SIZE * i
+            let lenght: usize = self.buffer.len(); 
+            while lenght > crate::BUFFER_SIZE * i
             {
                 i += 1;
             }
             let need_bytes = i * crate::BUFFER_SIZE;
-            let mut space: Vec<u8> = vec![0; need_bytes];
+            let mut space_lenght = need_bytes - lenght;
+            if (space_lenght < 11)
+            {
+                space_lenght += crate::BUFFER_SIZE;
+            }
+            let mut space: Vec<u8> = vec![0; space_lenght];
             self.buffer.append(&mut space);
         }
     }
@@ -104,6 +110,9 @@ pub mod command_serializer
             2 => {
                 CommandRMDIR { path: "".to_string() }.invoke(from, &mut reader);
             },
+            3 => {
+                CommandGetFiles { path: "".to_string() }.invoke(from, &mut reader);
+            }
             _ => {
                 println!("unknown struct received");
             }
@@ -123,7 +132,11 @@ pub trait Command {
         let mut writer = command_serializer::CommandWriter { buffer: Vec::new(), position: 0  };
         self.serialize(&mut writer);
         writer.resize();
+
+        println!("send buffer size: {}", writer.buffer.len());
+
         from.write(&writer.buffer).unwrap();
+        // from.flush().unwrap();
     }
     fn deserialize(&mut self, reader: &mut command_serializer::CommandReader);
     fn serialize(&mut self, writer: &mut command_serializer::CommandWriter);
@@ -146,6 +159,16 @@ pub struct CommandResult // 0
     message: String
 }
 
+pub struct CommandGetFiles // 3
+{
+    path: String
+}
+
+pub struct CommandGetFilesResult // 4
+{
+    data: DirInfo
+}
+
 impl Command for CommandMKDIR
 {
     fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
@@ -155,7 +178,7 @@ impl Command for CommandMKDIR
     fn execute_command(&mut self, from: &mut TcpStream) {
         if let Err(e) = std::fs::create_dir(self.path.to_string())
         {
-            let mut command_result = CommandResult { success: false, message: format!("failed to create \"{}\"", self.path.to_string()) };
+            let mut command_result = CommandResult { success: false, message: format!("{}", e) };
             command_result.send(from);
             println!("{}", e);
             return;
@@ -198,5 +221,38 @@ impl Command for CommandResult
     }
 
     fn execute_command(&mut self, _: &mut TcpStream) {
+    }
+}
+
+impl Command for CommandGetFilesResult
+{
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) { }
+
+    fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) {
+        writer.write_i32(4); // id
+        writer.write_string(self.data.path.to_string());
+        writer.write_i32(self.data.files.len() as i32);
+        for file in &self.data.files
+        {
+            writer.write_string(file.file_name.to_string());
+            writer.write_bool(file.is_dir);
+        }
+    }
+
+    fn execute_command(&mut self, from: &mut TcpStream) { }
+}
+
+impl Command for CommandGetFiles
+{
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
+        self.path = reader.read_string();
+    }
+
+    fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) { }
+
+    fn execute_command(&mut self, from: &mut TcpStream) {
+        let data = utils::dir::get_files(self.path.to_string());
+        let mut dir_info_result = CommandGetFilesResult { data: DirInfo { files: data.files, path: self.path.to_string() } };
+        dir_info_result.send(from);
     }
 }

@@ -6,23 +6,26 @@ using System.Threading.Tasks;
 
 namespace server.Serialize.NetCommands
 {
-    internal class CommandMKDIR : INetCommand, ISerializable
+    internal class CommandGetFiles : INetCommand, ISerializable
     {
-        public CommandMKDIR(string path = "")
+        public CommandGetFiles()
+        {
+            path = "";
+        }
+
+        public CommandGetFiles(string path)
         {
             this.path = path;
-            _id = 1;
         }
+
+        public int ID => 3;
 
         public void Serialize(CommandWriter writer)
         {
             writer.WriteString(path);
         }
 
-        public int ID => _id;
         public string path;
-
-        protected int _id;
 
     }
 }

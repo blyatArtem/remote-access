@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace server.Serialize.NetCommands
 {
-    internal interface INetMessageResult
+    internal interface IDeserializable
     {
-        public void Invoke();
+        public abstract void Deserialize(CommandReader reader);
     }
 }

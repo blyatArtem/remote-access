@@ -16,14 +16,28 @@ namespace server
             Console.WriteLine("rdy");
             for (; ; )
             {
-                Console.ReadKey();
-                INetCommand? result = Server.Current.Connections[0].Send(new CommandRMDIR("C:\\asd"));
-                if (result == null)
+                var key = Console.ReadKey().Key;
+
+                INetCommand command = null!;
+
+                if (key == ConsoleKey.D1)
                 {
+                    command = new CommandGetFiles(@"C:\Users\myzer\OneDrive\Desktop");
+                }
+                else if (key == ConsoleKey.D2)
+                {
+                    command = new CommandMKDIR(@"C:\Users\myzer\OneDrive\Desktop\test_rust");
+                }
+                else
+                    continue;
+
+                INetResult? callback = Server.Current.Connections[0].Send(command);
+                if (callback == null)
+                {
+                    Console.WriteLine("result is null");
                     continue;
                 }
-                CommandResult callback = result! as CommandResult;
-                Console.WriteLine($"returned: success: {callback.Success}, message: {callback.Message}");
+                callback?.Invoke();
             }
         }
 

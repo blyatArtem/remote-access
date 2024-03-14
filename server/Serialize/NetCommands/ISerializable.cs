@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace server.Serialize.NetCommands
 {
-    internal interface INetCommand
+    internal interface ISerializable
     {
-        public int ID
-        {
-            get;
-        }
+        public abstract void Serialize(CommandWriter writer);
     }
 }

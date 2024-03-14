@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace server.Serialize.NetCommands.Callbacks
 {
-    internal class CommandResult : INetCommand, INetMessageResult
+    internal class CommandResult : INetCommand, INetResult
     {
         public CommandResult()
         {
@@ -21,11 +21,9 @@ namespace server.Serialize.NetCommands.Callbacks
             Message = reader.ReadString();
         }
 
-        public void Serialize(CommandWriter writer) => throw new NotImplementedException("CommandResult.Serialize");
-
         public void Invoke()
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"CommandResult received. Success: {Success}, Message: {Message}");
         }
 
         public bool Success { get; set; }

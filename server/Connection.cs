@@ -18,15 +18,16 @@ namespace server
             this.Index = index;
         }
 
-        public INetCommand? Send(INetCommand command)
+        public INetResult? Send(INetCommand command)
         {
             CommandWriter writer = new CommandWriter();
             writer.WriteInt32(command.ID);
-            command.Serialize(writer);
+            (command as ISerializable)!.Serialize(writer);
 
             var buffer = writer.buffer;
-
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(string.Join(" ", buffer));
+            Console.ForegroundColor = ConsoleColor.Gray;
 
             var stream = Client.GetStream();
             stream.Write(buffer);
@@ -35,7 +36,7 @@ namespace server
             return Receive();
         }
 
-        public INetCommand? Receive()
+        public INetResult? Receive()
         {
             List<byte> buffer = new List<byte>();
             for(; ; )
@@ -50,7 +51,7 @@ namespace server
                 }
             }
 
-            Console.WriteLine(string.Join(" ", buffer));
+            Console.WriteLine($"received buffer: " + buffer.Count);
 
             CommandReader reader = new CommandReader();
             reader.buffer = buffer.ToArray();
@@ -58,7 +59,7 @@ namespace server
             return GetCommandFromId(commandId, reader);
         }
 
-        private INetCommand? GetCommandFromId(int id, CommandReader reader)
+        private INetResult? GetCommandFromId(int id, CommandReader reader)
         {
             if (id == 0)
             {
@@ -66,6 +67,13 @@ namespace server
                 result.Deserialize(reader);
                 return result;
             }
+            else if (id == 4)
+            {
+                CommandGetFilesResult result = new CommandGetFilesResult();
+                result.Deserialize(reader);
+                return result;
+            }
+            Console.WriteLine("Command id missed! ID: " + id);
             return null;
         }
 
