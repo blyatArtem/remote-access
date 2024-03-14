@@ -16,9 +16,16 @@ namespace server.Serialize.NetCommands.Callbacks
 
         public void Invoke()
         {
-            string result = "";
-            data.files.ForEach(x => result += $"{data.path}\\{x.fileName}{Environment.NewLine}");
-            Console.WriteLine(result);
+            string directoriesStr = "";
+            string filesStr = "";
+
+            data.files.Where(x => x.isDir).OrderBy(x => x.fileName).ToList().ForEach(x => directoriesStr += $"{data.path}\\{x.fileName}{Environment.NewLine}");
+            data.files.Where(x => !x.isDir).OrderBy(x => x.fileName).ToList().ForEach(x => filesStr += $"{data.path}\\{x.fileName}{Environment.NewLine}");
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(directoriesStr);
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(filesStr);
         }   
 
         public void Deserialize(CommandReader reader)

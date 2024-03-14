@@ -25,9 +25,8 @@ namespace server
             (command as ISerializable)!.Serialize(writer);
 
             var buffer = writer.buffer;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(string.Join(" ", buffer));
-            Console.ForegroundColor = ConsoleColor.Gray;
+
+            Program.Print($"sent {buffer.Length} bytes", ConsoleColor.DarkGray);
 
             var stream = Client.GetStream();
             stream.Write(buffer);
@@ -39,19 +38,19 @@ namespace server
         public INetResult? Receive()
         {
             List<byte> buffer = new List<byte>();
-            for(; ; )
+            for (; ; )
             {
                 byte[] readBuffer = new byte[Server.BUFFER_SIZE];
                 Client.GetStream().Read(readBuffer, 0, readBuffer.Length);
                 buffer = buffer.Concat(readBuffer.ToList()).ToList();
-                
+
                 if (!ContinueRead(readBuffer))
                 {
                     break;
                 }
             }
 
-            Console.WriteLine($"received buffer: " + buffer.Count);
+            Program.Print($"received {buffer.Count} bytes", ConsoleColor.DarkGray);
 
             CommandReader reader = new CommandReader();
             reader.buffer = buffer.ToArray();
@@ -73,7 +72,7 @@ namespace server
                 result.Deserialize(reader);
                 return result;
             }
-            Console.WriteLine("Command id missed! ID: " + id);
+            Program.Print("Failed to parse ID. Received value: " + id, ConsoleColor.Red);
             return null;
         }
 

@@ -23,7 +23,7 @@ namespace server.Serialize.NetCommands.Callbacks
 
         public void Invoke()
         {
-            Console.WriteLine($"CommandResult received. Success: {Success}, Message: {Message}");
+            Program.Print($"Received: {Message}", Success ? ConsoleColor.Green : ConsoleColor.Red);
         }
 
         public bool Success { get; set; }

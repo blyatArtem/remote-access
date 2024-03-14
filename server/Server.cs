@@ -31,22 +31,20 @@ namespace server
 
         internal static void Initialize(uint port, IPAddress address) => Current = new Server(port, address);
 
-        internal void RunThread(bool sync = false)
+        internal void RunThread()
         {
             _thr = new Thread(() =>
             {
                 while (true)
                 {
                     var connection = new Connection(_listner.AcceptTcpClient(), _connectionСounter);
-                    Console.WriteLine("client connected");
                     _connectionСounter++;
                     lock (_block)
                         Connections.Add(connection);
+                    clientConnected?.Invoke(this, connection);
                 }
             });
             _thr.Start();
-            if (sync)
-                _thr.Join();
         }
 
         internal void StopThread()
@@ -87,7 +85,7 @@ namespace server
         internal static Server Current
         {
             get; private set;
-        }
+        } = null!;
 
         internal static Server? Second
         {
@@ -103,6 +101,9 @@ namespace server
         {
             get; set;
         }
+
+        public Action<Server, Connection>? clientConnected;
+        public Action<Server, Connection>? clientDisconnected;
 
         private readonly TcpListener _listner;
         private readonly IPAddress _address;
