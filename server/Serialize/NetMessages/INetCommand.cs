@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
-    internal interface INetResult : INetCommand
+    internal interface INetCommand
     {
-        public void Invoke();
+        public int ID
+        {
+            get;
+        }
     }
 }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace server.Serialize
 {
-    internal abstract class CommandSerializer
+    internal abstract class NMSerializer
     {
-        public CommandSerializer()
+        public NMSerializer()
         {
             buffer = new byte[Server.BUFFER_SIZE];
             position = 0;

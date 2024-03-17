@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
-    internal class CommandRMDIR : CommandMKDIR
+    internal class NMRMDIR : NMMKDIR
     {
-        public CommandRMDIR()
+        public NMRMDIR()
         {
             _id = 2;
         }
 
-        public CommandRMDIR(string path) : base(path)
+        public NMRMDIR(string path) : base(path)
         {
             _id = 2;
         }

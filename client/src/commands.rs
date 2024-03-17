@@ -1,10 +1,9 @@
 use std::{io::Write, net::TcpStream};
-
 use crate::utils::{self, dir::DirInfo};
 
 pub mod command_serializer
 {
-    use super::{Command, CommandGetFiles, CommandMKDIR, CommandRMDIR};
+    use super::{CommandGetFiles, CommandMKDIR, CommandRMDIR, NetMessage};
     use std::net::TcpStream;
 
     pub struct CommandReader
@@ -15,8 +14,8 @@ pub mod command_serializer
 
     pub struct CommandWriter
     {
-        pub(crate) buffer: Vec<u8>,
-        pub(crate) position: usize
+        pub buffer: Vec<u8>,
+        pub position: usize
     }
 
     impl CommandWriter {
@@ -105,13 +104,19 @@ pub mod command_serializer
 
         match struct_id {
             1 => {
-                CommandMKDIR { path: "".to_string() }.invoke(from, &mut reader);
+                let mut mes = CommandMKDIR { path: "".to_string() };
+                mes.deserialize(&mut reader);
+                mes.invoke(from)
             },
             2 => {
-                CommandRMDIR { path: "".to_string() }.invoke(from, &mut reader);
+                let mut mes = CommandRMDIR { path: "".to_string() };
+                mes.deserialize(&mut reader);
+                mes.invoke(from)
             },
             3 => {
-                CommandGetFiles { path: "".to_string() }.invoke(from, &mut reader);
+                let mut mes = CommandGetFiles { path: "".to_string() };
+                mes.deserialize(&mut reader);
+                mes.invoke(from)
             }
             _ => {
                 println!("unknown struct received");
@@ -121,12 +126,7 @@ pub mod command_serializer
 
 }
 
-pub trait Command {
-    fn invoke(&mut self, from: &mut TcpStream, reader: &mut command_serializer::CommandReader)
-    {
-        self.deserialize(reader);
-        self.execute_command(from);
-    }
+pub trait NetMessageCallback {
     fn send(&mut self, from: &mut TcpStream)
     {
         let mut writer = command_serializer::CommandWriter { buffer: Vec::new(), position: 0  };
@@ -136,11 +136,16 @@ pub trait Command {
         println!("send buffer size: {}", writer.buffer.len());
 
         from.write(&writer.buffer).unwrap();
-        // from.flush().unwrap();
+        from.flush().unwrap();
     }
-    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader);
+    
     fn serialize(&mut self, writer: &mut command_serializer::CommandWriter);
-    fn execute_command(&mut self, from: &mut TcpStream);
+}
+
+pub trait NetMessage
+{
+    fn invoke(&mut self, from: &mut TcpStream);
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader);
 }
 
 pub struct CommandMKDIR // 1
@@ -169,13 +174,10 @@ pub struct CommandGetFilesResult // 4
     data: DirInfo
 }
 
-impl Command for CommandMKDIR
+impl NetMessage for CommandMKDIR
 {
-    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
-        self.path = reader.read_string();
-    }
 
-    fn execute_command(&mut self, from: &mut TcpStream) {
+    fn invoke(&mut self, from: &mut TcpStream) {
         if let Err(e) = std::fs::create_dir(self.path.to_string())
         {
             let mut command_result = CommandResult { success: false, message: format!("{}", e) };
@@ -187,16 +189,15 @@ impl Command for CommandMKDIR
         command_result.send(from);
     }
 
-    fn serialize(&mut self, _: &mut command_serializer::CommandWriter) { }
-}
-
-impl Command for CommandRMDIR
-{
     fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
         self.path = reader.read_string();
     }
+}
 
-    fn execute_command(&mut self, from: &mut TcpStream) {
+impl NetMessage for CommandRMDIR
+{
+
+    fn invoke(&mut self, from: &mut TcpStream) {
         if let Err(e) = std::fs::remove_dir_all(self.path.to_string())
         {
             let mut command_result = CommandResult { success: false, message: format!("{}", e) };
@@ -207,28 +208,24 @@ impl Command for CommandRMDIR
         command_result.send(from);
     }
 
-    fn serialize(&mut self, _: &mut command_serializer::CommandWriter) { }
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
+        self.path = reader.read_string();
+    }
 }
 
-impl Command for CommandResult
+impl NetMessageCallback for CommandResult
 {
-    fn deserialize(&mut self, _: &mut command_serializer::CommandReader) { }
-
     fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) {
         writer.write_i32(0); // current type
         writer.write_bool(self.success);
         writer.write_string(self.message.to_string());
     }
-
-    fn execute_command(&mut self, _: &mut TcpStream) {
-    }
 }
 
-impl Command for CommandGetFilesResult
+impl NetMessageCallback for CommandGetFilesResult
 {
-    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) { }
-
-    fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) {
+    fn serialize(&mut self, writer: &mut command_serializer::CommandWriter)
+    {
         writer.write_i32(4); // id
         writer.write_string(self.data.path.to_string());
         writer.write_i32(self.data.files.len() as i32);
@@ -238,21 +235,17 @@ impl Command for CommandGetFilesResult
             writer.write_bool(file.is_dir);
         }
     }
-
-    fn execute_command(&mut self, from: &mut TcpStream) { }
 }
 
-impl Command for CommandGetFiles
+impl NetMessage for CommandGetFiles
 {
-    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
-        self.path = reader.read_string();
-    }
-
-    fn serialize(&mut self, writer: &mut command_serializer::CommandWriter) { }
-
-    fn execute_command(&mut self, from: &mut TcpStream) {
+    fn invoke(&mut self, from: &mut TcpStream) {
         let data = utils::dir::get_files(self.path.to_string());
         let mut dir_info_result = CommandGetFilesResult { data: DirInfo { files: data.files, path: self.path.to_string() } };
         dir_info_result.send(from);
+    }
+
+    fn deserialize(&mut self, reader: &mut command_serializer::CommandReader) {
+        self.path = reader.read_string();
     }
 }

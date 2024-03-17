@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands.SerializableObjects
+namespace server.Serialize.NetMessages.SerializableObjects
 {
     internal class FileInfo
     {

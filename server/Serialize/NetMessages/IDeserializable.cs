@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
     internal interface IDeserializable
     {
-        public abstract void Deserialize(CommandReader reader);
+        public abstract void Deserialize(NMReader reader);
     }
 }

@@ -4,23 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
-    internal class CommandGetFiles : INetCommand, ISerializable
+    internal class NMGetFiles : INetCommand, ISerializable
     {
-        public CommandGetFiles()
+        public NMGetFiles()
         {
             path = "";
         }
 
-        public CommandGetFiles(string path)
+        public NMGetFiles(string path)
         {
             this.path = path;
         }
 
         public int ID => 3;
 
-        public void Serialize(CommandWriter writer)
+        public void Serialize(NMWriter writer)
         {
             writer.WriteString(path);
         }

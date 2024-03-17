@@ -4,13 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
-    internal interface INetCommand
+    internal interface ISerializable
     {
-        public int ID
-        {
-            get;
-        }
+        public abstract void Serialize(NMWriter writer);
     }
 }

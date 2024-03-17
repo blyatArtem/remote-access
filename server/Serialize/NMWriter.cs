@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace server.Serialize
 {
-    internal class CommandWriter : CommandSerializer
+    internal class NMWriter : NMSerializer
     {
-        public CommandWriter() : base()
+        public NMWriter() : base()
         {
 
         }

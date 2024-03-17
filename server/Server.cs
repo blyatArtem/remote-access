@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -8,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace server
 {
-    internal class Server : IDisposable
+    internal class Server
     {
         private Server()
         {
             this._block = new object();
-            this.Connections = new List<Connection>();
+            this._connections = new List<Connection>();
         }
 
         private Server(uint port, IPAddress address) : this()
@@ -21,12 +22,6 @@ namespace server
             this.Port = port;
             this._address = address;
             this._listner = new TcpListener(address, (int)port);
-        }
-
-        ~Server()
-        {
-            if (!_disposed)
-                Dispose();
         }
 
         internal static void Initialize(uint port, IPAddress address) => Current = new Server(port, address);
@@ -37,10 +32,10 @@ namespace server
             {
                 while (true)
                 {
-                    var connection = new Connection(_listner.AcceptTcpClient(), _connectionСounter);
-                    _connectionСounter++;
+                    var connection = new Connection(_listner.AcceptTcpClient(), _connectionsIndex);
+                    _connectionsIndex++;
                     lock (_block)
-                        Connections.Add(connection);
+                        _connections.Add(connection);
                     clientConnected?.Invoke(this, connection);
                 }
             });
@@ -57,16 +52,23 @@ namespace server
 
         internal void Stop() => _listner.Stop();
 
-        public void Dispose()
-        {
-            if (!_disposed)
-                Dispose();
-        }
-
         public void RemoveConnection(Connection connection)
         {
             lock (_block)
-                Connections.Remove(connection);
+            {
+                _connections.Remove(connection);
+                clientDisconnected?.Invoke(this);
+            }
+        }
+
+        public Connection? GetConnection(int index)
+        {
+            foreach (var c in Connections)
+            {
+                if (c.Index == index)
+                    return c;
+            }
+            return null;
         }
 
         public bool IsRunning
@@ -97,13 +99,15 @@ namespace server
             get; private set;
         }
 
-        public List<Connection> Connections
+        internal IReadOnlyCollection<Connection> Connections
         {
-            get; set;
+            get => new ReadOnlyCollection<Connection>(_connections);
         }
 
+        private List<Connection> _connections;
+
         public Action<Server, Connection>? clientConnected;
-        public Action<Server, Connection>? clientDisconnected;
+        public Action<Server>? clientDisconnected;
 
         private readonly TcpListener _listner;
         private readonly IPAddress _address;
@@ -112,8 +116,7 @@ namespace server
         private readonly object _block;
 
         private bool _running;
-        private bool _disposed;
-        private int _connectionСounter = 0;
+        private int _connectionsIndex = 0;
 
         public const int BUFFER_SIZE = 32;
     }

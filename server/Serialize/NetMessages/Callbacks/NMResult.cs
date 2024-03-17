@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands.Callbacks
+namespace server.Serialize.NetMessages.Callbacks
 {
-    internal class CommandResult : INetCommand, INetResult
+    internal class NMResult : INetCommand, INetResult
     {
-        public CommandResult()
+        public NMResult()
         {
             Message = "";
         }
 
         public int ID => 0;
 
-        public void Deserialize(CommandReader reader)
+        public void Deserialize(NMReader reader)
         {
             Success = reader.ReadBool();
             Message = reader.ReadString();

@@ -1,15 +1,15 @@
-﻿using server.Serialize.NetCommands.SerializableObjects;
+﻿using server.Serialize.NetMessages.SerializableObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands.Callbacks
+namespace server.Serialize.NetMessages.Callbacks
 {
-    internal class CommandGetFilesResult : INetResult, IDeserializable
+    internal class NMGetFilesResult : INetResult, IDeserializable
     {
-        public CommandGetFilesResult()
+        public NMGetFilesResult()
         {
             data = new DirInfo();
         }
@@ -28,7 +28,7 @@ namespace server.Serialize.NetCommands.Callbacks
             Console.WriteLine(filesStr);
         }   
 
-        public void Deserialize(CommandReader reader)
+        public void Deserialize(NMReader reader)
         {
             data.path = reader.ReadString();
             int count = reader.ReadInt32();

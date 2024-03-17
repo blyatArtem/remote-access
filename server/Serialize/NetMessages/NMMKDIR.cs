@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace server.Serialize.NetCommands
+namespace server.Serialize.NetMessages
 {
-    internal class CommandMKDIR : INetCommand, ISerializable
+    internal class NMMKDIR : INetCommand, ISerializable
     {
-        public CommandMKDIR(string path = "")
+        public NMMKDIR(string path = "")
         {
             this.path = path;
             _id = 1;
         }
 
-        public void Serialize(CommandWriter writer)
+        public void Serialize(NMWriter writer)
         {
             writer.WriteString(path);
         }
