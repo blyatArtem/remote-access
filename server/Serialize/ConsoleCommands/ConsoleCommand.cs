@@ -46,6 +46,9 @@ namespace server.Serialize.ConsoleCommands
                     new CCMKDIR(),
                     new CCRMDIR(),
                     new CCConnectionList(),
+                    new CCClear(),
+                    new CCStart(),
+                    new CCStartArg(),
                 ];
         }
 

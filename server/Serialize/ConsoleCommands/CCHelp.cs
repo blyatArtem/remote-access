@@ -18,7 +18,7 @@ namespace server.Serialize.ConsoleCommands
             foreach(var c in Program.Commands)
             {
                 string displayName = c.Name.ToUpper() + " ";
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 if (c.ShortName is not null)
                     displayName += $"({c.ShortName})";
 
@@ -41,6 +41,19 @@ namespace server.Serialize.ConsoleCommands
                 tab += "\t";
             }
             Console.Write(tab);
+        }
+    }
+
+    internal class CCClear : ConsoleCommand
+    {
+        public CCClear() : base("clear")
+        {
+            ShortName = "cls";
+        }
+
+        public override void Execute()
+        {
+            Console.Clear();
         }
     }
 }

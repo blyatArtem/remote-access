@@ -1,6 +1,7 @@
 ﻿using server.Serialize.ConsoleCommands;
 using server.Serialize.NetMessages;
 using server.Serialize.NetMessages.Callbacks;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -45,9 +46,9 @@ namespace server
             arguments = new List<string>();
 
             for (int i = 1; i < matches.Count; i++)
-                arguments.Add(matches[i].Value.Replace("\"", "").ToLower());
+                arguments.Add(matches[i].Value.Replace("\"", ""));
 
-            return matches[0].Value.Replace("\"", "");
+            return matches[0].Value.Replace("\"", "").ToLower();
         }
 
         static void RunCommand(string commandName, in List<string> arguments)

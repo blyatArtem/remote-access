@@ -11,7 +11,7 @@ namespace server.Serialize.ConsoleCommands
     {
         public CCMKDIR() : base("dir_create", [new CCArgumentString()])
         {
-            //ShortName = "mkdir";
+            ShortName = "mkdir";
         }
 
         public override void Execute()
@@ -25,7 +25,7 @@ namespace server.Serialize.ConsoleCommands
     {
         public CCRMDIR() : base("dir_delete", [new CCArgumentString()])
         {
-            //ShortName = "rmdir";
+            ShortName = "rmdir";
         }
 
         public override void Execute()

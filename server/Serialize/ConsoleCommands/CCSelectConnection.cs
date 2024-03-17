@@ -11,7 +11,6 @@ namespace server.Serialize.ConsoleCommands
     {
         public CCSelectConnection() : base("c_select", [new CCArgumentInt32()])
         {
-            ShortName = "sc";
         }
 
         public override void Execute()

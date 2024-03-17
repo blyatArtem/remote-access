@@ -28,6 +28,7 @@ namespace server
             NMWriter writer = new NMWriter();
             writer.WriteInt32(command.ID);
             (command as ISerializable)!.Serialize(writer);
+            writer.Resize();
 
             var buffer = writer.buffer;
 
@@ -59,7 +60,14 @@ namespace server
             for (; ; )
             {
                 byte[] readBuffer = new byte[Server.BUFFER_SIZE];
-                Client.GetStream().Read(readBuffer, 0, readBuffer.Length);
+                try
+                {
+                    Client.GetStream().Read(readBuffer, 0, readBuffer.Length);
+                }
+                catch
+                {
+                    return new ConnectionClosed();
+                }
                 buffer = buffer.Concat(readBuffer.ToList()).ToList();
 
                 if (!ContinueRead(readBuffer))

@@ -42,6 +42,21 @@ namespace server.Serialize
                 Array.Resize(ref buffer, buffer.Length + Server.BUFFER_SIZE);
         }
 
+        public void Resize()
+        {
+            int i = 0;
+            int length = buffer.Length;
+            while (length > Server.BUFFER_SIZE * i)
+                i++;
+            int need_bytes = i * Server.BUFFER_SIZE;
+            int space_length = need_bytes - length;
+            if (space_length < 11)
+            {
+                space_length += Server.BUFFER_SIZE;
+            }
+            Resize(need_bytes);
+        }
+
         public byte[] buffer;
         protected int position;
     }

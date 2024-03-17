@@ -28,3 +28,26 @@ pub mod dir
         return info;
     }
 }
+
+use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowTextW};
+pub mod processes
+{
+    pub fn start(file_name: String, arg: String) -> Result<std::process::Child, std::io::Error>
+    {
+        return std::process::Command::new(file_name).arg(arg).spawn();
+    }
+}
+
+
+pub fn get_active_window() -> String
+{
+    unsafe
+    {
+        let handle = GetForegroundWindow();
+        let mut title_char_array: [u16; 255] = [0; 255];
+        GetWindowTextW(handle, &mut title_char_array);
+
+        let title = String::from_utf16(&Vec::from(title_char_array)).unwrap();
+        return title;
+    }
+}
