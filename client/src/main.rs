@@ -45,5 +45,5 @@ fn continue_reading(read_buffer: [u8; BUFFER_SIZE]) -> bool
 }
 
 const ADDRESS: &str = "127.0.0.1";
-const PORT: i32 = 228;
+const PORT: i32 = 42069;
 const BUFFER_SIZE: usize = 32;

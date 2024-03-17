@@ -50,11 +50,13 @@ namespace server.Serialize
                 i++;
             int need_bytes = i * Server.BUFFER_SIZE;
             int space_length = need_bytes - length;
+            if (space_length == 0)
+                return;
             if (space_length < 11)
             {
                 space_length += Server.BUFFER_SIZE;
             }
-            Resize(need_bytes);
+            Resize(space_length);
         }
 
         public byte[] buffer;

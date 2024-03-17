@@ -105,7 +105,7 @@ namespace server
 
         public static List<ConsoleCommand> Commands = ConsoleCommand.GetCommands().OrderBy(x => x.Name).ToList();
 
-        private const int PORT = 228;
+        private const int PORT = 42069;
 
     }
 }

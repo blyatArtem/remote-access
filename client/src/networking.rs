@@ -63,6 +63,10 @@ pub mod serialization
             {
                 space_lenght += crate::BUFFER_SIZE;
             }
+            if space_lenght == 0
+            {
+                return;
+            }
             let mut space: Vec<u8> = vec![0; space_lenght];
             self.buffer.append(&mut space);
         }
@@ -99,6 +103,8 @@ pub mod serialization
 
     pub fn receive_data(from: &mut TcpStream, buffer: Vec<u8>)
     {
+        println!("received {} bytes", buffer.len());
+
         let mut reader = CommandReader { buffer: buffer, position: 0 };
         let struct_id = reader.read_i32();
         match struct_id {
@@ -137,6 +143,8 @@ pub trait NetMessageCallback {
         let mut writer = serialization::CommandWriter { buffer: Vec::new(), position: 0  };
         self.serialize(&mut writer);
         writer.resize();
+
+        println!("sent {} bytes", writer.buffer.len());
 
         from.write(&writer.buffer).unwrap();
         from.flush().unwrap();
